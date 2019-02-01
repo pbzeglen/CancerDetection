@@ -1,4 +1,4 @@
-'''
+"""
 This is an example of a fully convolutional network prediction pipeline.
 The data used is from the Histopathologic Cancer Detection playground challenge on Kaggle (link:https://www.kaggle.com/c/histopathologic-cancer-detection)
 
@@ -6,7 +6,7 @@ This module defines the model and trains it.
 
 The model was inspired by https://arxiv.org/pdf/1412.6806.pdf
 There are modifications (based on the different size of the data set)
-The choice not to use batchnorm, dropout, or l2 regularization was based on the paper's findings, 
+The choice not to use batchnorm, dropout, or l2 regularization was based on the paper's findings,
 (there is no fully connected layer, thus reducing complexity).
 
 Additionally, we apply regularization with our test set (since it is available) as an unlabeled set.
@@ -15,26 +15,26 @@ so the loss is trained to the variance in the prediction of a single image no ma
 
 Author: Peter Zeglen
 
-'''
+"""
 
 import tensorflow as tf
 import numpy as np
 
-#Whether to use regularization
-USE_REGULARIZATION = False
+# Whether to use regularization
+USE_REGULARIZATION = True
 
-#Whether to use one cycle policy (alternative is fixed learning rate = 1e-4)
-USE_ONE_CYCLE = False
+# Whether to use one cycle policy (alternative is fixed learning rate = 1e-4)
+USE_ONE_CYCLE = True
 
 sess = tf.InteractiveSession()
 
-tf.random.set_random_seed(0)
+tf.set_random_seed(0)
 
-#x,y represent the supervised training pair
+# x,y represent the supervised training pair
 x = tf.placeholder(shape=[None, 64, 64, 3], dtype=tf.float32)
 y = tf.placeholder(shape=[None], dtype=tf.float32)
 
-#x is from the unlabeled data set: it is used to enforce rotation invariance in the model
+# x is from the unlabeled data set: it is used to enforce rotation invariance in the model
 x_test_reg = tf.placeholder(shape=[None, 64, 64, 3], dtype=tf.float32)
 
 rate = tf.placeholder(shape=[], dtype=tf.float32)
@@ -83,7 +83,7 @@ def full_model_pass(x_input):
 
 # Prediction output
 with tf.variable_scope("model", reuse=False):
-    training_logits, x_t = full_model_pass(x)
+    training_logits = full_model_pass(x)
 
 
 with tf.variable_scope("model", reuse=True):
@@ -107,6 +107,7 @@ if USE_REGULARIZATION:
 else:
     step = tf.train.AdamOptimizer(rate).minimize(cross_entropy_loss + l1 * regularization_loss)
 
+
 saver = tf.train.Saver()
 sess.run(tf.global_variables_initializer())
 print(tf.trainable_variables())
@@ -120,9 +121,11 @@ Adam's parameters are adjusted in an inverted triange over the first 45 epochs, 
 We only adjust the learning rate in this code.
 The learning rate modulates between .008 and .08, and then descends down to 1e-4 for the remaining epochs
 '''
+
+
 def get_learning_rate_and_momentum(batch_number, final_number=200000):
     if batch_number < 45000:
-        return (.01 - .0008) * np.abs(batch_number - 22500) / 22500, .85 + .1 * np.abs(batch_number - 22500)
+        return (.01 - .0008) * np.abs(batch_number - 22500) / 22500
     else:
         return .0008 - .0007 * (batch_number - 45000) / (final_number - 45000)
 
