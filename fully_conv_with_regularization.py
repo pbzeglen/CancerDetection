@@ -107,6 +107,7 @@ if USE_REGULARIZATION:
 else:
     step = tf.train.AdamOptimizer(rate).minimize(cross_entropy_loss + l1 * regularization_loss)
 
+saver = tf.train.Saver()
 sess.run(tf.global_variables_initializer())
 print(tf.trainable_variables())
 
@@ -141,3 +142,6 @@ for i in range(100000):
         x_val, y_val = get_validation(50)
         print(i)
         print(accuracy.eval(feed_dict={x: x_batch, y: y_batch}))
+
+
+saver.save(sess, 'models/fully_conv')
